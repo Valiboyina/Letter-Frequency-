@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Letter Frequency Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #output {
+            margin-top: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Letter Frequency Analyzer with Caesar Cipher</h1>
+    <p>Enter your text below to analyze letter frequencies, encrypt it, and decrypt it:</p>
+
+    <textarea id="inputText" placeholder="Enter your text here..."></textarea>
+    <button onclick="analyzeText()">Analyze and Encrypt</button>
+
+    <div id="output">
+        <h2>Letter Frequency Distribution</h2>
+        <canvas id="frequencyChart"></canvas>
+
+        <h2>Encrypted Text</h2>
+        <p id="encryptedText"></p>
+
+        <h2>Decrypted Text</h2>
+        <p id="decryptedText"></p>
+    </div>
+
+    <script>
+        // Function to calculate letter frequencies
+        function calculateFrequencies(text) {
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const cleanText = text.toUpperCase().replace(/[^A-Z]/g, "");
+            const frequencies = {};
+            for (const letter of alphabet) {
+                frequencies[letter] = 0;
+            }
+            for (const char of cleanText) {
+                if (alphabet.includes(char)) {
+                    frequencies[char] += 1;
+                }
+            }
+            const totalLetters = cleanText.length;
+            for (const letter in frequencies) {
+                frequencies[letter] = totalLetters > 0 ? frequencies[letter] / totalLetters : 0;
+            }
+            return frequencies;
+        }
+
+        // Function to encrypt text using Caesar cipher
+        function caesarEncrypt(text, shift) {
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            return text
+                .toUpperCase()
+                .split("")
+                .map(char => {
+                    if (!alphabet.includes(char)) return char;
+                    const newIndex = (alphabet.indexOf(char) + shift) % 26;
+                    return alphabet[newIndex];
+                })
+                .join("");
+        }
+
+        // Function to decrypt text using Caesar cipher
+        function caesarDecrypt(text, shift) {
+            return caesarEncrypt(text, 26 - shift);
+        }
+
+        // Function to plot the letter frequency distribution
+        function plotFrequencies(frequencies) {
+            const ctx = document.getElementById("frequencyChart").getContext("2d");
+            const labels = Object.keys(frequencies);
+            const data = Object.values(frequencies);
+
+            new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Frequency",
+                            data: data,
+                            backgroundColor: "rgba(75, 192, 192, 0.2)",
+                            borderColor: "rgba(75, 192, 192, 1)",
+                            borderWidth: 1,
+                        },
+                    ],
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                        },
+                    },
+                },
+            });
+        }
+
+        // Main function to analyze text, encrypt, and decrypt
+        function analyzeText() {
+            const inputText = document.getElementById("inputText").value;
+            if (!inputText) {
+                alert("Please enter some text to analyze.");
+                return;
+            }
+
+            // Calculate letter frequencies
+            const frequencies = calculateFrequencies(inputText);
+            plotFrequencies(frequencies);
+
+            // Encrypt the text with a shift of 5
+            const shiftValue = 5;
+            const encryptedText = caesarEncrypt(inputText, shiftValue);
+            document.getElementById("encryptedText").textContent = encryptedText;
+
+            // Decrypt the text by reversing the shift
+            const decryptedText = caesarDecrypt(encryptedText, shiftValue);
+            document.getElementById("decryptedText").textContent = decryptedText;
+        }
+    </script>
+</body>
+</html>
